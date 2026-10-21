@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confusion Matrix & Cost of Misprediction Calculator</title>
+  <meta name="description" content="Interactive 2x2 Confusion Matrix Calculator for Machine Learning and Data Science students. Reconstruct confusion matrices from minimal metric sets (Precision, Recall, Accuracy, Specificity, Prevalence) and explore the financial and operational cost of misprediction.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background-glow glow-1"></div>
+  <div class="background-glow glow-2"></div>
+
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="branding">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="8" height="8" rx="2" class="cm-cell-tp"></rect>
+            <rect x="13" y="3" width="8" height="8" rx="2" class="cm-cell-fp"></rect>
+            <rect x="3" y="13" width="8" height="8" rx="2" class="cm-cell-fn"></rect>
+            <rect x="13" y="13" width="8" height="8" rx="2" class="cm-cell-tn"></rect>
+          </svg>
+        </div>
+        <div>
+          <h1 class="app-title">Confusion Matrix Calculator</h1>
+          <p class="app-subtitle">Reconstruct 2×2 matrices from minimal metrics & analyze the cost of misprediction</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="class-legend-pill">
+          <span class="legend-dot dot-pos"></span> Positive = <strong>Alert</strong>
+          <span class="legend-divider">|</span>
+          <span class="legend-dot dot-neg"></span> Negative = <strong>No Alert</strong>
+        </div>
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle dark/light theme" title="Toggle theme">
+          <svg id="themeMoonIcon" class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg id="themeSunIcon" class="icon hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <!-- TOP CONTROLS & TABS -->
+    <section class="card config-card" id="calculator-config">
+      <div class="card-header-flex">
+        <div>
+          <span class="badge badge-accent">Interactive Formulation</span>
+          <h2 class="card-heading">1. Select Input Formulation (Minimal Metric Set)</h2>
+          <p class="card-description">A 2×2 matrix has 3 degrees of freedom given sample size <code class="math-code">n</code>. Pick the 3 metrics you know:</p>
+        </div>
+        <div class="sample-size-box">
+          <label for="sampleSizeInput" class="input-label">Sample Size (<code class="math-code">n</code>)</label>
+          <div class="input-group">
+            <input type="number" id="sampleSizeInput" min="1" max="10000000" step="10" value="1000" class="num-input highlight-input">
+            <span class="input-unit">samples</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB NAVIGATION -->
+      <nav class="nav-tabs" role="tablist" aria-label="Reconstruction Mode Tabs">
+        <button class="tab-btn active" role="tab" id="tab-pr-acc" aria-selected="true" aria-controls="panel-pr-acc" data-mode="pr_acc">
+          <span class="tab-badge">Tab 1</span>
+          <span class="tab-title">Precision + Recall + Accuracy</span>
+          <span class="tab-sub">Includes Balanced Accuracy option</span>
+        </button>
+        <button class="tab-btn" role="tab" id="tab-pr-prev" aria-selected="false" aria-controls="panel-pr-prev" data-mode="pr_prev">
+          <span class="tab-badge">Tab 2</span>
+          <span class="tab-title">Precision + Recall + Prevalence</span>
+          <span class="tab-sub">Demonstrates Base-Rate Fallacy</span>
+        </button>
+        <button class="tab-btn" role="tab" id="tab-sens-spec" aria-selected="false" aria-controls="panel-sens-spec" data-mode="sens_spec">
+          <span class="tab-badge">Tab 3</span>
+          <span class="tab-title">Sensitivity + Specificity + Prevalence</span>
+          <span class="tab-sub">Classic Diagnostic Screening</span>
+        </button>
+        <button class="tab-btn" role="tab" id="tab-direct" aria-selected="false" aria-controls="panel-direct" data-mode="direct">
+          <span class="tab-badge">Tab 4</span>
+          <span class="tab-title">Direct Counts (TP, FP, FN, TN)</span>
+          <span class="tab-sub">Manual Entry / What-If Explorer</span>
+        </button>
+      </nav>
+
+      <!-- TAB PANELS -->
+      <div class="tab-content-area">
+        <!-- MODE 1: Precision + Recall + Accuracy / Balanced Accuracy -->
+        <div class="tab-panel active" id="panel-pr-acc" role="tabpanel" aria-labelledby="tab-pr-acc">
+          <div class="panel-intro-banner">
+            <div class="intro-icon">💡</div>
+            <div>
+              <strong>Reconstruction Theorem:</strong> Knowing <em>Precision (PPV)</em>, <em>Recall (TPR)</em>, and <em>Overall Accuracy</em> (or <em>Balanced Accuracy</em>) allows us to uniquely solve the 3 linear equations for actual positives <code class="math-code">P</code>, negatives <code class="math-code">N</code>, and all 4 cells.
+            </div>
+          </div>
+
+          <div class="inputs-grid">
+            <!-- Precision -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m1_precision" class="slider-label">Precision (PPV)</label>
+                  <span class="label-hint">P(Actual Alert | Predicted Alert)</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m1_precision_num" min="0.1" max="100" step="0.1" value="70.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m1_precision" min="0.1" max="99.9" step="0.1" value="70.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Recall -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m1_recall" class="slider-label">Recall / Sensitivity (TPR)</label>
+                  <span class="label-hint">P(Predicted Alert | Actual Alert)</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m1_recall_num" min="0.1" max="100" step="0.1" value="80.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m1_recall" min="0.1" max="99.9" step="0.1" value="80.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Third Metric Selector & Slider -->
+            <div class="slider-control-card" id="m1_third_metric_card">
+              <div class="control-header">
+                <div>
+                  <div class="metric-switch-wrapper">
+                    <label for="m1_accuracy_type" class="slider-label">Third Metric:</label>
+                    <select id="m1_accuracy_type" class="inline-select">
+                      <option value="accuracy" selected>Overall Accuracy</option>
+                      <option value="balanced_accuracy">Balanced Accuracy</option>
+                    </select>
+                  </div>
+                  <span class="label-hint" id="m1_third_hint">(TP + TN) / n</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m1_acc_num" min="0.1" max="100" step="0.1" value="88.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m1_acc" min="0.1" max="99.9" step="0.1" value="88.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE 2: Precision + Recall + Prevalence -->
+        <div class="tab-panel" id="panel-pr-prev" role="tabpanel" aria-labelledby="tab-pr-prev">
+          <div class="panel-intro-banner">
+            <div class="intro-icon">🔬</div>
+            <div>
+              <strong>The Base-Rate Effect:</strong> Given <em>Prevalence</em> (how common true Alerts are in your population), <em>Recall</em>, and <em>Precision</em>, the false alarm volume and specificity are uniquely fixed. Try lowering prevalence to 1% to witness how precision collapses when false alarms overpower true events!
+            </div>
+          </div>
+
+          <div class="inputs-grid">
+            <!-- Precision -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m2_precision" class="slider-label">Precision (PPV)</label>
+                  <span class="label-hint">Fraction of Alerts that are real</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m2_precision_num" min="0.1" max="100" step="0.1" value="65.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m2_precision" min="0.1" max="99.9" step="0.1" value="65.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Recall -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m2_recall" class="slider-label">Recall / Sensitivity</label>
+                  <span class="label-hint">Fraction of real Alerts caught</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m2_recall_num" min="0.1" max="100" step="0.1" value="85.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m2_recall" min="0.1" max="99.9" step="0.1" value="85.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Prevalence -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m2_prev" class="slider-label">Prevalence (Base Rate)</label>
+                  <span class="label-hint">P(Actual Alert) = Positives / n</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m2_prev_num" min="0.01" max="99.99" step="0.1" value="10.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m2_prev" min="0.1" max="99.9" step="0.1" value="10.0" class="range-slider">
+              <div class="slider-ticks"><span>0.1%</span><span>50%</span><span>100%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE 3: Sensitivity + Specificity + Prevalence -->
+        <div class="tab-panel" id="panel-sens-spec" role="tabpanel" aria-labelledby="tab-sens-spec">
+          <div class="panel-intro-banner">
+            <div class="intro-icon">🩺</div>
+            <div>
+              <strong>Classic Medical / Screening Paradigm:</strong> Sensitivity (TPR) and Specificity (TNR) describe intrinsic detector properties invariant to class balance. Paired with Prevalence, all other metrics (Precision/PPV, NPV, Accuracy) emerge naturally via Bayes' Rule!
+            </div>
+          </div>
+
+          <div class="inputs-grid">
+            <!-- Sensitivity -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m3_sens" class="slider-label">Sensitivity / Recall (TPR)</label>
+                  <span class="label-hint">True Positive Rate</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m3_sens_num" min="0.1" max="100" step="0.1" value="90.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m3_sens" min="0.1" max="99.9" step="0.1" value="90.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Specificity -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m3_spec" class="slider-label">Specificity (TNR)</label>
+                  <span class="label-hint">True Negative Rate = TN / (FP + TN)</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m3_spec_num" min="0.1" max="100" step="0.1" value="95.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m3_spec" min="0.1" max="99.9" step="0.1" value="95.0" class="range-slider">
+              <div class="slider-ticks"><span>0%</span><span>50%</span><span>100%</span></div>
+            </div>
+
+            <!-- Prevalence -->
+            <div class="slider-control-card">
+              <div class="control-header">
+                <div>
+                  <label for="m3_prev" class="slider-label">Prevalence (Base Rate)</label>
+                  <span class="label-hint">Proportion of Actual Alerts</span>
+                </div>
+                <div class="value-display">
+                  <input type="number" id="m3_prev_num" min="0.01" max="99.99" step="0.1" value="5.0" class="inline-num-input">
+                  <span class="pct-symbol">%</span>
+                </div>
+              </div>
+              <input type="range" id="m3_prev" min="0.1" max="99.9" step="0.1" value="5.0" class="range-slider">
+              <div class="slider-ticks"><span>0.1%</span><span>50%</span><span>100%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE 4: Direct Cell Inputs -->
+        <div class="tab-panel" id="panel-direct" role="tabpanel" aria-labelledby="tab-direct">
+          <div class="panel-intro-banner">
+            <div class="intro-icon">✏️</div>
+            <div>
+              <strong>Direct Cell Counts Mode:</strong> Type the exact counts of True Alerts (TP), False Alarms (FP), Missed Alerts (FN), and Quiet Normals (TN). The total sample size and all metrics will update instantly.
+            </div>
+          </div>
+
+          <div class="direct-cells-grid">
+            <div class="direct-cell-card tp-border">
+              <label for="direct_tp" class="direct-label">True Positive (TP) — True Alert</label>
+              <input type="number" id="direct_tp" min="0" max="10000000" step="1" value="160" class="direct-input">
+              <span class="cell-sub">Predicted Alert & Actual Alert</span>
+            </div>
+            <div class="direct-cell-card fp-border">
+              <label for="direct_fp" class="direct-label">False Positive (FP) — False Alarm</label>
+              <input type="number" id="direct_fp" min="0" max="10000000" step="1" value="40" class="direct-input">
+              <span class="cell-sub">Predicted Alert but Actual No Alert</span>
+            </div>
+            <div class="direct-cell-card fn-border">
+              <label for="direct_fn" class="direct-label">False Negative (FN) — Missed Alert</label>
+              <input type="number" id="direct_fn" min="0" max="10000000" step="1" value="40" class="direct-input">
+              <span class="cell-sub">Predicted No Alert but Actual Alert</span>
+            </div>
+            <div class="direct-cell-card tn-border">
+              <label for="direct_tn" class="direct-label">True Negative (TN) — Quiet Normal</label>
+              <input type="number" id="direct_tn" min="0" max="10000000" step="1" value="760" class="direct-input">
+              <span class="cell-sub">Predicted No Alert & Actual No Alert</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VALIDATION WARNING BANNER -->
+      <div id="validationAlert" class="alert-banner hidden" role="alert">
+        <div class="alert-icon">⚠️</div>
+        <div id="validationMessage" class="alert-content">
+          Mathematically impossible metric combination: resulting cell counts would be negative. Adjust sliders to a valid region.
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN DASHBOARD: CONFUSION MATRIX & COST ANALYSIS -->
+    <div class="dashboard-grid">
+      <!-- LEFT COLUMN: 2x2 CONFUSION MATRIX -->
+      <section class="card matrix-card" id="confusion-matrix-view">
+        <div class="card-header-flex">
+          <div>
+            <span class="badge badge-primary">2×2 Matrix</span>
+            <h2 class="card-heading">Confusion Matrix</h2>
+            <p class="card-description">Rows = Actual Condition, Columns = Prediction</p>
+          </div>
+          <div class="matrix-toggles">
+            <button id="toggleDecimalBtn" class="pill-btn" title="Toggle between whole integer counts and exact decimal values">
+              <span class="pill-dot"></span> <span id="decimalToggleText">Whole Numbers (Rounded)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="matrix-table-wrapper">
+          <table class="confusion-table" id="confusionTable" aria-label="2x2 Confusion Matrix">
+            <thead>
+              <tr>
+                <th colspan="2" rowspan="2" class="th-corner">
+                  <div class="corner-split">
+                    <span class="corner-pred">Predicted ➔</span>
+                    <span class="corner-act">Actual 🠓</span>
+                  </div>
+                </th>
+                <th class="th-col-pred pred-pos-col">
+                  <div class="pred-header-title">Predicted Alert</div>
+                  <div class="pred-header-sub">Positive Class (+)</div>
+                </th>
+                <th class="th-col-pred pred-neg-col">
+                  <div class="pred-header-title">Predicted No Alert</div>
+                  <div class="pred-header-sub">Negative Class (-)</div>
+                </th>
+                <th class="th-marginal th-total-col">
+                  <div class="marginal-header-title">Actual Total</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ROW 1: ACTUAL ALERT -->
+              <tr>
+                <th rowspan="1" class="th-row-act act-pos-row">
+                  <div class="act-header-title">Actual Alert</div>
+                  <div class="act-header-sub">Condition Present (+)</div>
+                </th>
+                <td class="th-sub-label">Positive</td>
+                <!-- TP CELL -->
+                <td class="cm-cell cell-tp" id="cell-tp">
+                  <div class="cell-top-row">
+                    <span class="cell-tag tag-tp">True Positive (TP)</span>
+                    <span class="cell-role">True Catch</span>
+                  </div>
+                  <div class="cell-value-display">
+                    <span class="cell-count" id="count-tp">0</span>
+                    <span class="cell-pct" id="pct-tp">0%</span>
+                  </div>
+                  <div class="cell-rates">
+                    <span class="rate-badge" title="Recall: TP / Actual Positives" id="rate-tp-recall">80.0% of Actual</span>
+                    <span class="rate-badge" title="Precision: TP / Predicted Positives" id="rate-tp-prec">70.0% of Alerts</span>
+                  </div>
+                  <div class="cell-cost-pill" id="cost-pill-tp" title="Associated operational cost">
+                    Cost: <strong id="cost-val-tp">$0</strong>
+                  </div>
+                </td>
+                <!-- FN CELL -->
+                <td class="cm-cell cell-fn" id="cell-fn">
+                  <div class="cell-top-row">
+                    <span class="cell-tag tag-fn">False Negative (FN)</span>
+                    <span class="cell-role">Missed Alert</span>
+                  </div>
+                  <div class="cell-value-display">
+                    <span class="cell-count" id="count-fn">0</span>
+                    <span class="cell-pct" id="pct-fn">0%</span>
+                  </div>
+                  <div class="cell-rates">
+                    <span class="rate-badge" title="Miss Rate: FN / Actual Positives" id="rate-fn-miss">20.0% of Actual</span>
+                    <span class="rate-badge" title="False Omission Rate: FN / Predicted Negatives" id="rate-fn-for">2.5% of No Alerts</span>
+                  </div>
+                  <div class="cell-cost-pill penalty-cost" id="cost-pill-fn" title="Associated penalty/incident cost">
+                    Cost: <strong id="cost-val-fn">$0</strong>
+                  </div>
+                </td>
+                <!-- ROW 1 MARGINAL TOTAL: ACTUAL POSITIVES (P) -->
+                <td class="cm-cell cell-marginal cell-marginal-row">
+                  <div class="marginal-label">Actual Positives (<code class="math-code">P</code>)</div>
+                  <div class="marginal-value" id="count-act-pos">0</div>
+                  <div class="marginal-sub" id="pct-act-pos">Prevalence: 0%</div>
+                </td>
+              </tr>
+
+              <!-- ROW 2: ACTUAL NO ALERT -->
+              <tr>
+                <th rowspan="1" class="th-row-act act-neg-row">
+                  <div class="act-header-title">Actual No Alert</div>
+                  <div class="act-header-sub">Condition Absent (-)</div>
+                </th>
+                <td class="th-sub-label">Negative</td>
+                <!-- FP CELL -->
+                <td class="cm-cell cell-fp" id="cell-fp">
+                  <div class="cell-top-row">
+                    <span class="cell-tag tag-fp">False Positive (FP)</span>
+                    <span class="cell-role">False Alarm</span>
+                  </div>
+                  <div class="cell-value-display">
+                    <span class="cell-count" id="count-fp">0</span>
+                    <span class="cell-pct" id="pct-fp">0%</span>
+                  </div>
+                  <div class="cell-rates">
+                    <span class="rate-badge" title="Fall-out (FPR): FP / Actual Negatives" id="rate-fp-fpr">5.0% of Negatives</span>
+                    <span class="rate-badge" title="False Discovery Rate: FP / Predicted Positives" id="rate-fp-fdr">30.0% of Alerts</span>
+                  </div>
+                  <div class="cell-cost-pill penalty-cost" id="cost-pill-fp" title="Associated triage/investigation cost">
+                    Cost: <strong id="cost-val-fp">$0</strong>
+                  </div>
+                </td>
+                <!-- TN CELL -->
+                <td class="cm-cell cell-tn" id="cell-tn">
+                  <div class="cell-top-row">
+                    <span class="cell-tag tag-tn">True Negative (TN)</span>
+                    <span class="cell-role">Quiet Normal</span>
+                  </div>
+                  <div class="cell-value-display">
+                    <span class="cell-count" id="count-tn">0</span>
+                    <span class="cell-pct" id="pct-tn">0%</span>
+                  </div>
+                  <div class="cell-rates">
+                    <span class="rate-badge" title="Specificity: TN / Actual Negatives" id="rate-tn-spec">95.0% of Negatives</span>
+                    <span class="rate-badge" title="NPV: TN / Predicted Negatives" id="rate-tn-npv">97.5% of No Alerts</span>
+                  </div>
+                  <div class="cell-cost-pill" id="cost-pill-tn" title="Normal quiet operation cost">
+                    Cost: <strong id="cost-val-tn">$0</strong>
+                  </div>
+                </td>
+                <!-- ROW 2 MARGINAL TOTAL: ACTUAL NEGATIVES (N) -->
+                <td class="cm-cell cell-marginal cell-marginal-row">
+                  <div class="marginal-label">Actual Negatives (<code class="math-code">N</code>)</div>
+                  <div class="marginal-value" id="count-act-neg">0</div>
+                  <div class="marginal-sub" id="pct-act-neg">Complement: 0%</div>
+                </td>
+              </tr>
+
+              <!-- SUMMARY ROW: MARGINAL COLUMN TOTALS -->
+              <tr class="tr-totals">
+                <th colspan="2" class="th-total-corner">Predicted Totals</th>
+                <!-- PREDICTED POSITIVES TOTAL -->
+                <td class="cm-cell cell-marginal cell-marginal-col">
+                  <div class="marginal-label">Total Alerts (<code class="math-code">PP</code>)</div>
+                  <div class="marginal-value" id="count-pred-pos">0</div>
+                  <div class="marginal-sub" id="pct-pred-pos">0% of population</div>
+                </td>
+                <!-- PREDICTED NEGATIVES TOTAL -->
+                <td class="cm-cell cell-marginal cell-marginal-col">
+                  <div class="marginal-label">Total No Alerts (<code class="math-code">PN</code>)</div>
+                  <div class="marginal-value" id="count-pred-neg">0</div>
+                  <div class="marginal-sub" id="pct-pred-neg">0% of population</div>
+                </td>
+                <!-- GRAND TOTAL (n) -->
+                <td class="cm-cell cell-grand-total">
+                  <div class="grand-label">Grand Total (<code class="math-code">n</code>)</div>
+                  <div class="grand-value" id="count-grand-total">1,000</div>
+                  <div class="grand-sub">100.0% Samples</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- MATRIX FOOTER INSIGHT -->
+        <div class="matrix-insight" id="matrixInsightBanner">
+          <span class="insight-badge">Summary</span>
+          <span id="matrixInsightText">Out of 1,000 samples, the model raised alerts for 200 items. 140 were valid alerts (TP) while 60 were false alarms (FP). 20 true incidents were missed (FN).</span>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: COST OF MISPREDICTION ENGINE -->
+      <section class="card cost-card" id="cost-analysis-view">
+        <div class="card-header-flex">
+          <div>
+            <span class="badge badge-warning">Pedagogical Core</span>
+            <h2 class="card-heading">Cost of Misprediction Engine</h2>
+            <p class="card-description">Understand why high accuracy can be economically disastrous without balanced precision & recall.</p>
+          </div>
+          <div class="preset-dropdown-wrap">
+            <label for="scenarioPresetSelect" class="sr-only">Industry Scenario Preset</label>
+            <select id="scenarioPresetSelect" class="preset-select">
+              <option value="" disabled selected>⚡ Load Real-World Scenario Preset...</option>
+              <option value="cyber">🛡️ Cybersecurity SOC (Alarm fatigue vs Breach)</option>
+              <option value="medical">🩺 Emergency Sepsis Screening (ICU bed vs Sepsis)</option>
+              <option value="quality">🏭 Factory Defect Inspection (Scrap vs Recall)</option>
+              <option value="fraud">💳 Credit Card Fraud Detection (Friction vs Loss)</option>
+              <option value="balanced">⚖️ Equal Unit Penalty ($100 each)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- COST PARAMETERS INPUTS -->
+        <div class="cost-inputs-grid">
+          <div class="cost-param-card fp-cost-card">
+            <div class="cost-header">
+              <span class="cost-label">Cost per False Alarm (<code class="math-code">C_FP</code>)</span>
+              <span class="cost-badge badge-fp">False Positive</span>
+            </div>
+            <p class="cost-desc">Investigation time, analyst fatigue, wasted lab test</p>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="cost_fp" min="0" max="1000000" step="5" value="100" class="cost-num-input">
+            </div>
+          </div>
+
+          <div class="cost-param-card fn-cost-card">
+            <div class="cost-header">
+              <span class="cost-label">Cost per Missed Alert (<code class="math-code">C_FN</code>)</span>
+              <span class="cost-badge badge-fn">False Negative</span>
+            </div>
+            <p class="cost-desc">Undetected data breach, untreated infection, customer loss</p>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="cost_fn" min="0" max="1000000" step="50" value="5000" class="cost-num-input">
+            </div>
+          </div>
+
+          <div class="cost-param-card tp-cost-card">
+            <div class="cost-header">
+              <span class="cost-label">Cost per True Catch (<code class="math-code">C_TP</code>)</span>
+              <span class="cost-badge badge-tp">True Positive</span>
+            </div>
+            <p class="cost-desc">Standard operational handling & mitigation cost</p>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="cost_tp" min="0" max="1000000" step="5" value="20" class="cost-num-input">
+            </div>
+          </div>
+
+          <div class="cost-param-card tn-cost-card">
+            <div class="cost-header">
+              <span class="cost-label">Cost per Quiet Normal (<code class="math-code">C_TN</code>)</span>
+              <span class="cost-badge badge-tn">True Negative</span>
+            </div>
+            <p class="cost-desc">Baseline quiet normal operation (typically $0)</p>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="cost_tn" min="0" max="1000000" step="5" value="0" class="cost-num-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- TOTAL FINANCIAL OUTCOME -->
+        <div class="total-cost-display">
+          <div class="cost-stat-main">
+            <span class="cost-stat-caption">Total Expected Cost</span>
+            <div class="cost-huge-number" id="totalCostDisplay">$0</div>
+            <div class="cost-per-sample">Average: <span id="avgCostDisplay">$0.00</span> per processed sample</div>
+          </div>
+
+          <!-- COST BREAKDOWN VISUAL BAR -->
+          <div class="cost-breakdown-container">
+            <div class="cost-bar-labels">
+              <span>Cost Distribution</span>
+              <span id="costBreakdownPct">0% Missed Alerts | 0% False Alarms</span>
+            </div>
+            <div class="cost-progress-bar" id="costProgressBar">
+              <div class="bar-segment bar-fn" id="barSegmentFN" title="Cost of Missed Alerts (FN)"></div>
+              <div class="bar-segment bar-fp" id="barSegmentFP" title="Cost of False Alarms (FP)"></div>
+              <div class="bar-segment bar-tp" id="barSegmentTP" title="Cost of True Alerts (TP)"></div>
+            </div>
+            <div class="cost-legend-row">
+              <span class="legend-item"><span class="legend-dot dot-fn"></span> Missed Alerts: <strong id="costLegendFN">$0</strong></span>
+              <span class="legend-item"><span class="legend-dot dot-fp"></span> False Alarms: <strong id="costLegendFP">$0</strong></span>
+              <span class="legend-item"><span class="legend-dot dot-tp"></span> Valid Catches: <strong id="costLegendTP">$0</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BASELINE COMPARISON: THE "WHY MODELING MATTERS" LESSON -->
+        <div class="baseline-comparison-box">
+          <h3 class="baseline-title">🎓 The Business Case: Model vs Naive Strategies</h3>
+          <div class="baseline-grid">
+            <div class="baseline-item">
+              <span class="baseline-lbl">Naive Policy A: "Alert Everyone" (PP=n)</span>
+              <span class="baseline-val" id="costPolicyAllPos">$0</span>
+              <span class="baseline-sub">0 Missed Alerts, but max False Alarms</span>
+            </div>
+            <div class="baseline-item">
+              <span class="baseline-lbl">Naive Policy B: "Alert Nobody" (PN=n)</span>
+              <span class="baseline-val" id="costPolicyAllNeg">$0</span>
+              <span class="baseline-sub">0 False Alarms, but every alert missed</span>
+            </div>
+            <div class="baseline-item highlight-baseline">
+              <span class="baseline-lbl">Your Model's Net Cost Advantage</span>
+              <span class="baseline-val advantage-val" id="costAdvantageVal">$0</span>
+              <span class="baseline-sub" id="costAdvantageSub">Savings vs best naive policy</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- METRICS COMPREHENSIVE CARDS -->
+    <section class="card metrics-card" id="all-metrics-view">
+      <div class="card-header-flex">
+        <div>
+          <span class="badge badge-accent">Comprehensive Evaluation</span>
+          <h2 class="card-heading">All Derived Metrics & Diagnostic Properties</h2>
+          <p class="card-description">Computed dynamically from the 2×2 confusion matrix</p>
+        </div>
+        <div class="export-actions">
+          <button id="copyMarkdownBtn" class="action-btn" title="Copy confusion matrix and metrics as Markdown table">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            Copy Markdown
+          </button>
+          <button id="copyLatexBtn" class="action-btn" title="Copy as LaTeX code for academic papers and homework">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            Copy LaTeX
+          </button>
+          <button id="copyReportBtn" class="action-btn primary-action" title="Copy formatted student assignment report">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Copy Student Report
+          </button>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <!-- Precision -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Precision (PPV)</span>
+            <span class="metric-alias">Positive Predictive Value</span>
+          </div>
+          <div class="metric-value" id="card-prec">0.0%</div>
+          <div class="metric-formula"><code>TP / (TP + FP)</code></div>
+          <p class="metric-desc">When an alert sounds, probability it's an actual incident.</p>
+        </div>
+
+        <!-- Recall -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Recall / Sensitivity</span>
+            <span class="metric-alias">True Positive Rate (TPR)</span>
+          </div>
+          <div class="metric-value" id="card-rec">0.0%</div>
+          <div class="metric-formula"><code>TP / (TP + FN)</code></div>
+          <p class="metric-desc">Proportion of real incidents successfully caught.</p>
+        </div>
+
+        <!-- Specificity -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Specificity (TNR)</span>
+            <span class="metric-alias">True Negative Rate</span>
+          </div>
+          <div class="metric-value" id="card-spec">0.0%</div>
+          <div class="metric-formula"><code>TN / (TN + FP)</code></div>
+          <p class="metric-desc">Proportion of normal non-events correctly left quiet.</p>
+        </div>
+
+        <!-- Accuracy -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Accuracy</span>
+            <span class="metric-alias">Overall Correct Rate</span>
+          </div>
+          <div class="metric-value" id="card-acc">0.0%</div>
+          <div class="metric-formula"><code>(TP + TN) / n</code></div>
+          <p class="metric-desc">Fraction of all classifications that were correct.</p>
+        </div>
+
+        <!-- Balanced Accuracy -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Balanced Accuracy</span>
+            <span class="metric-alias">Macro Average Recall</span>
+          </div>
+          <div class="metric-value" id="card-bal-acc">0.0%</div>
+          <div class="metric-formula"><code>(TPR + TNR) / 2</code></div>
+          <p class="metric-desc">Unweighted mean of sensitivity and specificity (robust to skew).</p>
+        </div>
+
+        <!-- F1 Score -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">F₁ Score</span>
+            <span class="metric-alias">Harmonic Mean</span>
+          </div>
+          <div class="metric-value" id="card-f1">0.000</div>
+          <div class="metric-formula"><code>2·(PPV·TPR)/(PPV+TPR)</code></div>
+          <p class="metric-desc">Balances precision and recall without considering TN.</p>
+        </div>
+
+        <!-- Fall-out / FPR -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">False Positive Rate (FPR)</span>
+            <span class="metric-alias">Fall-out = 1 - Specificity</span>
+          </div>
+          <div class="metric-value" id="card-fpr">0.0%</div>
+          <div class="metric-formula"><code>FP / (FP + TN)</code></div>
+          <p class="metric-desc">Rate at which innocent non-events trigger false alarms.</p>
+        </div>
+
+        <!-- Negative Predictive Value -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Negative Predictive (NPV)</span>
+            <span class="metric-alias">Confidence in Silence</span>
+          </div>
+          <div class="metric-value" id="card-npv">0.0%</div>
+          <div class="metric-formula"><code>TN / (TN + FN)</code></div>
+          <p class="metric-desc">When silence is observed, probability everything is truly safe.</p>
+        </div>
+
+        <!-- Prevalence -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Prevalence</span>
+            <span class="metric-alias">Base Rate</span>
+          </div>
+          <div class="metric-value" id="card-prev">0.0%</div>
+          <div class="metric-formula"><code>(TP + FN) / n</code></div>
+          <p class="metric-desc">Natural incidence rate of the Alert condition in the population.</p>
+        </div>
+
+        <!-- Matthews Correlation Coefficient -->
+        <div class="metric-card">
+          <div class="metric-card-top">
+            <span class="metric-name">Matthews Corr (MCC)</span>
+            <span class="metric-alias">Phi Coefficient (-1 to +1)</span>
+          </div>
+          <div class="metric-value" id="card-mcc">0.000</div>
+          <div class="metric-formula"><code>(TP·TN - FP·FN)/√(...)</code></div>
+          <p class="metric-desc">Balanced metric that returns -1 (anti-correlated) to +1 (perfect).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDUCATIONAL GUIDE / STUDENT ACCORDION -->
+    <section class="card guide-card">
+      <div class="card-header-flex">
+        <div>
+          <span class="badge badge-accent">Pedagogical Guide</span>
+          <h2 class="card-heading">Key Concepts & Mathematical Proofs</h2>
+          <p class="card-description">Essential learning takeaways for machine learning, statistics, and decision analysis students</p>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <details class="accordion-item" open>
+          <summary class="accordion-header">
+            <span>⚖️ Why Can High Accuracy (99%) Be Catastrophically Misleading?</span>
+            <span class="accordion-arrow">▼</span>
+          </summary>
+          <div class="accordion-body">
+            <p>Suppose you are building an intrusion detection system where true intrusions have a prevalence of <strong>0.5%</strong> (5 attacks per 1,000 requests). A naive model that simply <em>never alerts</em> achieves an impressive <strong>99.5% accuracy</strong>!</p>
+            <p>However, its <strong>Recall is 0%</strong> (all 5 attacks succeed undetected). If the cost of a missed breach is $100,000, that 99.5% accurate model incurs $500,000 in damages. This is why practitioners look at <strong>Precision, Recall, Balanced Accuracy, and Expected Misprediction Cost</strong> rather than raw accuracy alone.</p>
+          </div>
+        </details>
+
+        <details class="accordion-item">
+          <summary class="accordion-header">
+            <span>📐 Mathematical Reconstruction: How 3 Metrics + n Determine the 4 Cells</span>
+            <span class="accordion-arrow">▼</span>
+          </summary>
+          <div class="accordion-body">
+            <p>A 2×2 confusion matrix contains four cells: <code class="math-code">TP, FP, FN, TN</code> with sum <code class="math-code">n = TP + FP + FN + TN</code>. Because <code class="math-code">n</code> fixes one degree of freedom, exactly <strong>3 independent equations</strong> are needed to solve for the four cells:</p>
+            <ul>
+              <li><strong>Tab 1 Formulation (Precision, Recall, Accuracy):</strong>
+                <div class="math-block">
+                  P = \frac{n(1 - \text{Accuracy})}{1 + \text{Recall} \cdot \left(\frac{1 - 2\cdot \text{Precision}}{\text{Precision}}\right)}
+                </div>
+                Once the actual positive count <code class="math-code">P</code> is determined, <code class="math-code">TP = \text{Recall} \cdot P</code>, <code class="math-code">FN = P - TP</code>, <code class="math-code">FP = TP \cdot \frac{1 - \text{Precision}}{\text{Precision}}</code>, and <code class="math-code">TN = n - P - FP</code>.
+              </li>
+              <li><strong>Balanced Accuracy Variant:</strong>
+                Since <code class="math-code">\text{Balanced Accuracy} = (\text{Recall} + \text{Specificity})/2</code>, we immediately have <code class="math-code">\text{Specificity} = 2 \cdot \text{BalAcc} - \text{Recall}</code>. Then:
+                <div class="math-block">
+                  P = \frac{n \cdot \text{Precision} \cdot (1 - \text{Specificity})}{\text{Recall}(1 - \text{Precision}) + \text{Precision}(1 - \text{Specificity})}
+                </div>
+              </li>
+              <li><strong>Prevalence Variant (Bayes' Rule):</strong>
+                When Prevalence <code class="math-code">\text{Prev}</code> is given: <code class="math-code">P = n \cdot \text{Prev}</code>, <code class="math-code">N = n(1 - \text{Prev})</code>, directly breaking the degrees of freedom.
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="accordion-item">
+          <summary class="accordion-header">
+            <span>🚨 Operational Trade-Off: False Alarms (FP) vs Missed Alerts (FN)</span>
+            <span class="accordion-arrow">▼</span>
+          </summary>
+          <div class="accordion-body">
+            <p>Every classifier has a decision threshold (e.g., probability cutoff <code class="math-code">p &ge; \theta</code>). Moving this threshold creates an inherent trade-off:</p>
+            <div class="tradeoff-columns">
+              <div class="tradeoff-col">
+                <h4 class="tradeoff-title col-low-thresh">Lowering Threshold (More Eager to Alert)</h4>
+                <ul>
+                  <li>Catches more incidents &rarr; <strong>Higher Recall (Sensitivity)</strong></li>
+                  <li>Fewer Missed Alerts &rarr; Lower False Negative cost</li>
+                  <li>Triggers more False Alarms &rarr; <strong>Lower Precision</strong></li>
+                  <li>Risk: Analyst alert fatigue, wasted investigation time</li>
+                </ul>
+              </div>
+              <div class="tradeoff-col">
+                <h4 class="tradeoff-title col-high-thresh">Raising Threshold (More Conservative)</h4>
+                <ul>
+                  <li>Alerts only when very confident &rarr; <strong>Higher Precision</strong></li>
+                  <li>Fewer False Alarms &rarr; Lower investigation costs</li>
+                  <li>Misses subtle incidents &rarr; <strong>Lower Recall</strong></li>
+                  <li>Risk: Severe breach or patient harm from undetected events</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-left">
+        <strong>Confusion Matrix & Cost of Misprediction Calculator</strong> — Designed for Data Science, Statistics & Machine Learning Education.
+      </div>
+      <div class="footer-right">
+        <span class="footer-badge">Hosted via GitHub Pages</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
