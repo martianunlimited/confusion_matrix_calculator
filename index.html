@@ -317,304 +317,179 @@
       </div>
     </section>
 
-    <!-- MAIN TWO-COLUMN DASHBOARD: CONFUSION MATRIX & COST ANALYSIS -->
-    <div class="dashboard-grid">
-      <!-- LEFT COLUMN: 2x2 CONFUSION MATRIX -->
-      <section class="card matrix-card" id="confusion-matrix-view">
-        <div class="card-header-flex">
-          <div>
-            <span class="badge badge-primary">2×2 Matrix</span>
-            <h2 class="card-heading">Confusion Matrix</h2>
-            <p class="card-description">Rows = Actual Condition, Columns = Prediction</p>
-          </div>
-          <div class="matrix-toggles">
-            <button id="toggleDecimalBtn" class="pill-btn" title="Toggle between whole integer counts and exact decimal values">
-              <span class="pill-dot"></span> <span id="decimalToggleText">Whole Numbers (Rounded)</span>
-            </button>
-          </div>
+    <!-- HERO 2x2 CONFUSION MATRIX BLOCK (MAIN ITEM) -->
+    <section class="card matrix-card hero-matrix-card" id="confusion-matrix-view">
+      <div class="card-header-flex">
+        <div>
+          <span class="badge badge-primary">2×2 Matrix (Core Visual)</span>
+          <h2 class="card-heading">2×2 Confusion Matrix</h2>
+          <p class="card-description">Rows = Actual Ground Truth, Columns = Model Decision</p>
         </div>
-
-        <div class="matrix-table-wrapper">
-          <table class="confusion-table" id="confusionTable" aria-label="2x2 Confusion Matrix">
-            <thead>
-              <tr>
-                <th colspan="2" rowspan="2" class="th-corner">
-                  <div class="corner-split">
-                    <span class="corner-pred">Predicted ➔</span>
-                    <span class="corner-act">Actual 🠓</span>
-                  </div>
-                </th>
-                <th class="th-col-pred pred-pos-col">
-                  <div class="pred-header-title">Predicted Alert</div>
-                  <div class="pred-header-sub">Positive Class (+)</div>
-                </th>
-                <th class="th-col-pred pred-neg-col">
-                  <div class="pred-header-title">Predicted No Alert</div>
-                  <div class="pred-header-sub">Negative Class (-)</div>
-                </th>
-                <th class="th-marginal th-total-col">
-                  <div class="marginal-header-title">Actual Total</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- ROW 1: ACTUAL ALERT -->
-              <tr>
-                <th rowspan="1" class="th-row-act act-pos-row">
-                  <div class="act-header-title">Actual Alert</div>
-                  <div class="act-header-sub">Condition Present (+)</div>
-                </th>
-                <td class="th-sub-label">Positive</td>
-                <!-- TP CELL -->
-                <td class="cm-cell cell-tp" id="cell-tp">
-                  <div class="cell-top-row">
-                    <span class="cell-tag tag-tp">True Positive (TP)</span>
-                    <span class="cell-role">True Catch</span>
-                  </div>
-                  <div class="cell-value-display">
-                    <span class="cell-count" id="count-tp">0</span>
-                    <span class="cell-pct" id="pct-tp">0%</span>
-                  </div>
-                  <div class="cell-rates">
-                    <span class="rate-badge" title="Recall: TP / Actual Positives" id="rate-tp-recall">80.0% of Actual</span>
-                    <span class="rate-badge" title="Precision: TP / Predicted Positives" id="rate-tp-prec">70.0% of Alerts</span>
-                  </div>
-                  <div class="cell-cost-pill" id="cost-pill-tp" title="Associated operational cost">
-                    Cost: <strong id="cost-val-tp">$0</strong>
-                  </div>
-                </td>
-                <!-- FN CELL -->
-                <td class="cm-cell cell-fn" id="cell-fn">
-                  <div class="cell-top-row">
-                    <span class="cell-tag tag-fn">False Negative (FN)</span>
-                    <span class="cell-role">Missed Alert</span>
-                  </div>
-                  <div class="cell-value-display">
-                    <span class="cell-count" id="count-fn">0</span>
-                    <span class="cell-pct" id="pct-fn">0%</span>
-                  </div>
-                  <div class="cell-rates">
-                    <span class="rate-badge" title="Miss Rate: FN / Actual Positives" id="rate-fn-miss">20.0% of Actual</span>
-                    <span class="rate-badge" title="False Omission Rate: FN / Predicted Negatives" id="rate-fn-for">2.5% of No Alerts</span>
-                  </div>
-                  <div class="cell-cost-pill penalty-cost" id="cost-pill-fn" title="Associated penalty/incident cost">
-                    Cost: <strong id="cost-val-fn">$0</strong>
-                  </div>
-                </td>
-                <!-- ROW 1 MARGINAL TOTAL: ACTUAL POSITIVES (P) -->
-                <td class="cm-cell cell-marginal cell-marginal-row">
-                  <div class="marginal-label">Actual Positives (<code class="math-code">P</code>)</div>
-                  <div class="marginal-value" id="count-act-pos">0</div>
-                  <div class="marginal-sub" id="pct-act-pos">Prevalence: 0%</div>
-                </td>
-              </tr>
-
-              <!-- ROW 2: ACTUAL NO ALERT -->
-              <tr>
-                <th rowspan="1" class="th-row-act act-neg-row">
-                  <div class="act-header-title">Actual No Alert</div>
-                  <div class="act-header-sub">Condition Absent (-)</div>
-                </th>
-                <td class="th-sub-label">Negative</td>
-                <!-- FP CELL -->
-                <td class="cm-cell cell-fp" id="cell-fp">
-                  <div class="cell-top-row">
-                    <span class="cell-tag tag-fp">False Positive (FP)</span>
-                    <span class="cell-role">False Alarm</span>
-                  </div>
-                  <div class="cell-value-display">
-                    <span class="cell-count" id="count-fp">0</span>
-                    <span class="cell-pct" id="pct-fp">0%</span>
-                  </div>
-                  <div class="cell-rates">
-                    <span class="rate-badge" title="Fall-out (FPR): FP / Actual Negatives" id="rate-fp-fpr">5.0% of Negatives</span>
-                    <span class="rate-badge" title="False Discovery Rate: FP / Predicted Positives" id="rate-fp-fdr">30.0% of Alerts</span>
-                  </div>
-                  <div class="cell-cost-pill penalty-cost" id="cost-pill-fp" title="Associated triage/investigation cost">
-                    Cost: <strong id="cost-val-fp">$0</strong>
-                  </div>
-                </td>
-                <!-- TN CELL -->
-                <td class="cm-cell cell-tn" id="cell-tn">
-                  <div class="cell-top-row">
-                    <span class="cell-tag tag-tn">True Negative (TN)</span>
-                    <span class="cell-role">Quiet Normal</span>
-                  </div>
-                  <div class="cell-value-display">
-                    <span class="cell-count" id="count-tn">0</span>
-                    <span class="cell-pct" id="pct-tn">0%</span>
-                  </div>
-                  <div class="cell-rates">
-                    <span class="rate-badge" title="Specificity: TN / Actual Negatives" id="rate-tn-spec">95.0% of Negatives</span>
-                    <span class="rate-badge" title="NPV: TN / Predicted Negatives" id="rate-tn-npv">97.5% of No Alerts</span>
-                  </div>
-                  <div class="cell-cost-pill" id="cost-pill-tn" title="Normal quiet operation cost">
-                    Cost: <strong id="cost-val-tn">$0</strong>
-                  </div>
-                </td>
-                <!-- ROW 2 MARGINAL TOTAL: ACTUAL NEGATIVES (N) -->
-                <td class="cm-cell cell-marginal cell-marginal-row">
-                  <div class="marginal-label">Actual Negatives (<code class="math-code">N</code>)</div>
-                  <div class="marginal-value" id="count-act-neg">0</div>
-                  <div class="marginal-sub" id="pct-act-neg">Complement: 0%</div>
-                </td>
-              </tr>
-
-              <!-- SUMMARY ROW: MARGINAL COLUMN TOTALS -->
-              <tr class="tr-totals">
-                <th colspan="2" class="th-total-corner">Predicted Totals</th>
-                <!-- PREDICTED POSITIVES TOTAL -->
-                <td class="cm-cell cell-marginal cell-marginal-col">
-                  <div class="marginal-label">Total Alerts (<code class="math-code">PP</code>)</div>
-                  <div class="marginal-value" id="count-pred-pos">0</div>
-                  <div class="marginal-sub" id="pct-pred-pos">0% of population</div>
-                </td>
-                <!-- PREDICTED NEGATIVES TOTAL -->
-                <td class="cm-cell cell-marginal cell-marginal-col">
-                  <div class="marginal-label">Total No Alerts (<code class="math-code">PN</code>)</div>
-                  <div class="marginal-value" id="count-pred-neg">0</div>
-                  <div class="marginal-sub" id="pct-pred-neg">0% of population</div>
-                </td>
-                <!-- GRAND TOTAL (n) -->
-                <td class="cm-cell cell-grand-total">
-                  <div class="grand-label">Grand Total (<code class="math-code">n</code>)</div>
-                  <div class="grand-value" id="count-grand-total">1,000</div>
-                  <div class="grand-sub">100.0% Samples</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="matrix-toggles">
+          <button id="toggleDecimalBtn" class="pill-btn" title="Toggle between whole integer counts and exact decimal values">
+            <span class="pill-dot"></span> <span id="decimalToggleText">Whole Numbers (Rounded)</span>
+          </button>
         </div>
+      </div>
 
-        <!-- MATRIX FOOTER INSIGHT -->
-        <div class="matrix-insight" id="matrixInsightBanner">
-          <span class="insight-badge">Summary</span>
-          <span id="matrixInsightText">Out of 1,000 samples, the model raised alerts for 200 items. 140 were valid alerts (TP) while 60 were false alarms (FP). 20 true incidents were missed (FN).</span>
-        </div>
-      </section>
+      <div class="matrix-table-wrapper">
+        <table class="confusion-table" id="confusionTable" aria-label="2x2 Confusion Matrix">
+          <thead>
+            <tr>
+              <th colspan="2" rowspan="2" class="th-corner">
+                <div class="corner-split">
+                  <span class="corner-pred">Predicted ➔</span>
+                  <span class="corner-act">Actual 🠓</span>
+                </div>
+              </th>
+              <th class="th-col-pred pred-pos-col">
+                <div class="pred-header-title">Predicted Alert</div>
+                <div class="pred-header-sub">Positive Decision (+)</div>
+              </th>
+              <th class="th-col-pred pred-neg-col">
+                <div class="pred-header-title">Predicted No Alert</div>
+                <div class="pred-header-sub">Negative Decision (-)</div>
+              </th>
+              <th class="th-marginal th-total-col">
+                <div class="marginal-header-title">Actual Total</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ROW 1: ACTUAL ALERT -->
+            <tr>
+              <th rowspan="1" class="th-row-act act-pos-row">
+                <div class="act-header-title">Actual Alert</div>
+                <div class="act-header-sub">Condition Present (+)</div>
+              </th>
+              <td class="th-sub-label">Positive</td>
+              <!-- TP CELL -->
+              <td class="cm-cell cell-tp" id="cell-tp">
+                <div class="cell-top-row">
+                  <span class="cell-tag tag-tp">True Positive (TP)</span>
+                  <span class="cell-role">True Catch</span>
+                </div>
+                <div class="cell-value-display">
+                  <span class="cell-count" id="count-tp">0</span>
+                  <span class="cell-pct" id="pct-tp">0%</span>
+                </div>
+                <div class="cell-rates">
+                  <span class="rate-badge" title="Recall: TP / Actual Positives" id="rate-tp-recall">80.0% of Actual</span>
+                  <span class="rate-badge" title="Precision: TP / Predicted Positives" id="rate-tp-prec">70.0% of Alerts</span>
+                </div>
+                <div class="cell-cost-pill" id="cost-pill-tp" title="Associated operational cost">
+                  Cost: <strong id="cost-val-tp">$0</strong>
+                </div>
+              </td>
+              <!-- FN CELL -->
+              <td class="cm-cell cell-fn" id="cell-fn">
+                <div class="cell-top-row">
+                  <span class="cell-tag tag-fn">False Negative (FN)</span>
+                  <span class="cell-role">Missed Alert</span>
+                </div>
+                <div class="cell-value-display">
+                  <span class="cell-count" id="count-fn">0</span>
+                  <span class="cell-pct" id="pct-fn">0%</span>
+                </div>
+                <div class="cell-rates">
+                  <span class="rate-badge" title="Miss Rate: FN / Actual Positives" id="rate-fn-miss">20.0% of Actual</span>
+                  <span class="rate-badge" title="False Omission Rate: FN / Predicted Negatives" id="rate-fn-for">2.5% of No Alerts</span>
+                </div>
+                <div class="cell-cost-pill penalty-cost" id="cost-pill-fn" title="Associated penalty/incident cost">
+                  Cost: <strong id="cost-val-fn">$0</strong>
+                </div>
+              </td>
+              <!-- ROW 1 MARGINAL TOTAL: ACTUAL POSITIVES (P) -->
+              <td class="cm-cell cell-marginal cell-marginal-row">
+                <div class="marginal-label">Actual Positives (<code class="math-code">P</code>)</div>
+                <div class="marginal-value" id="count-act-pos">0</div>
+                <div class="marginal-sub" id="pct-act-pos">Prevalence: 0%</div>
+              </td>
+            </tr>
 
-      <!-- RIGHT COLUMN: COST OF MISPREDICTION ENGINE -->
-      <section class="card cost-card" id="cost-analysis-view">
-        <div class="card-header-flex">
-          <div>
-            <span class="badge badge-warning">Pedagogical Core</span>
-            <h2 class="card-heading">Cost of Misprediction Engine</h2>
-            <p class="card-description">Understand why high accuracy can be economically disastrous without balanced precision & recall.</p>
-          </div>
-          <div class="preset-dropdown-wrap">
-            <label for="scenarioPresetSelect" class="sr-only">Industry Scenario Preset</label>
-            <select id="scenarioPresetSelect" class="preset-select">
-              <option value="" disabled selected>⚡ Load Real-World Scenario Preset...</option>
-              <option value="cyber">🛡️ Cybersecurity SOC (Alarm fatigue vs Breach)</option>
-              <option value="medical">🩺 Emergency Sepsis Screening (ICU bed vs Sepsis)</option>
-              <option value="quality">🏭 Factory Defect Inspection (Scrap vs Recall)</option>
-              <option value="fraud">💳 Credit Card Fraud Detection (Friction vs Loss)</option>
-              <option value="balanced">⚖️ Equal Unit Penalty ($100 each)</option>
-            </select>
-          </div>
-        </div>
+            <!-- ROW 2: ACTUAL NO ALERT -->
+            <tr>
+              <th rowspan="1" class="th-row-act act-neg-row">
+                <div class="act-header-title">Actual No Alert</div>
+                <div class="act-header-sub">Condition Absent (-)</div>
+              </th>
+              <td class="th-sub-label">Negative</td>
+              <!-- FP CELL -->
+              <td class="cm-cell cell-fp" id="cell-fp">
+                <div class="cell-top-row">
+                  <span class="cell-tag tag-fp">False Positive (FP)</span>
+                  <span class="cell-role">False Alarm</span>
+                </div>
+                <div class="cell-value-display">
+                  <span class="cell-count" id="count-fp">0</span>
+                  <span class="cell-pct" id="pct-fp">0%</span>
+                </div>
+                <div class="cell-rates">
+                  <span class="rate-badge" title="Fall-out (FPR): FP / Actual Negatives" id="rate-fp-fpr">5.0% of Negatives</span>
+                  <span class="rate-badge" title="False Discovery Rate: FP / Predicted Positives" id="rate-fp-fdr">30.0% of Alerts</span>
+                </div>
+                <div class="cell-cost-pill penalty-cost" id="cost-pill-fp" title="Associated triage/investigation cost">
+                  Cost: <strong id="cost-val-fp">$0</strong>
+                </div>
+              </td>
+              <!-- TN CELL -->
+              <td class="cm-cell cell-tn" id="cell-tn">
+                <div class="cell-top-row">
+                  <span class="cell-tag tag-tn">True Negative (TN)</span>
+                  <span class="cell-role">Quiet Normal</span>
+                </div>
+                <div class="cell-value-display">
+                  <span class="cell-count" id="count-tn">0</span>
+                  <span class="cell-pct" id="pct-tn">0%</span>
+                </div>
+                <div class="cell-rates">
+                  <span class="rate-badge" title="Specificity: TN / Actual Negatives" id="rate-tn-spec">95.0% of Negatives</span>
+                  <span class="rate-badge" title="NPV: TN / Predicted Negatives" id="rate-tn-npv">97.5% of No Alerts</span>
+                </div>
+                <div class="cell-cost-pill" id="cost-pill-tn" title="Normal quiet operation cost">
+                  Cost: <strong id="cost-val-tn">$0</strong>
+                </div>
+              </td>
+              <!-- ROW 2 MARGINAL TOTAL: ACTUAL NEGATIVES (N) -->
+              <td class="cm-cell cell-marginal cell-marginal-row">
+                <div class="marginal-label">Actual Negatives (<code class="math-code">N</code>)</div>
+                <div class="marginal-value" id="count-act-neg">0</div>
+                <div class="marginal-sub" id="pct-act-neg">Complement: 0%</div>
+              </td>
+            </tr>
 
-        <!-- COST PARAMETERS INPUTS -->
-        <div class="cost-inputs-grid">
-          <div class="cost-param-card fp-cost-card">
-            <div class="cost-header">
-              <span class="cost-label">Cost per False Alarm (<code class="math-code">C_FP</code>)</span>
-              <span class="cost-badge badge-fp">False Positive</span>
-            </div>
-            <p class="cost-desc">Investigation time, analyst fatigue, wasted lab test</p>
-            <div class="currency-input-wrap">
-              <span class="currency-symbol">$</span>
-              <input type="number" id="cost_fp" min="0" max="1000000" step="5" value="100" class="cost-num-input">
-            </div>
-          </div>
+            <!-- SUMMARY ROW: MARGINAL COLUMN TOTALS -->
+            <tr class="tr-totals">
+              <th colspan="2" class="th-total-corner">Predicted Totals</th>
+              <!-- PREDICTED POSITIVES TOTAL -->
+              <td class="cm-cell cell-marginal cell-marginal-col">
+                <div class="marginal-label">Total Alerts (<code class="math-code">PP</code>)</div>
+                <div class="marginal-value" id="count-pred-pos">0</div>
+                <div class="marginal-sub" id="pct-pred-pos">0% of population</div>
+              </td>
+              <!-- PREDICTED NEGATIVES TOTAL -->
+              <td class="cm-cell cell-marginal cell-marginal-col">
+                <div class="marginal-label">Total No Alerts (<code class="math-code">PN</code>)</div>
+                <div class="marginal-value" id="count-pred-neg">0</div>
+                <div class="marginal-sub" id="pct-pred-neg">0% of population</div>
+              </td>
+              <!-- GRAND TOTAL (n) -->
+              <td class="cm-cell cell-grand-total">
+                <div class="grand-label">Grand Total (<code class="math-code">n</code>)</div>
+                <div class="grand-value" id="count-grand-total">1,000</div>
+                <div class="grand-sub">100.0% Samples</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-          <div class="cost-param-card fn-cost-card">
-            <div class="cost-header">
-              <span class="cost-label">Cost per Missed Alert (<code class="math-code">C_FN</code>)</span>
-              <span class="cost-badge badge-fn">False Negative</span>
-            </div>
-            <p class="cost-desc">Undetected data breach, untreated infection, customer loss</p>
-            <div class="currency-input-wrap">
-              <span class="currency-symbol">$</span>
-              <input type="number" id="cost_fn" min="0" max="1000000" step="50" value="5000" class="cost-num-input">
-            </div>
-          </div>
-
-          <div class="cost-param-card tp-cost-card">
-            <div class="cost-header">
-              <span class="cost-label">Cost per True Catch (<code class="math-code">C_TP</code>)</span>
-              <span class="cost-badge badge-tp">True Positive</span>
-            </div>
-            <p class="cost-desc">Standard operational handling & mitigation cost</p>
-            <div class="currency-input-wrap">
-              <span class="currency-symbol">$</span>
-              <input type="number" id="cost_tp" min="0" max="1000000" step="5" value="20" class="cost-num-input">
-            </div>
-          </div>
-
-          <div class="cost-param-card tn-cost-card">
-            <div class="cost-header">
-              <span class="cost-label">Cost per Quiet Normal (<code class="math-code">C_TN</code>)</span>
-              <span class="cost-badge badge-tn">True Negative</span>
-            </div>
-            <p class="cost-desc">Baseline quiet normal operation (typically $0)</p>
-            <div class="currency-input-wrap">
-              <span class="currency-symbol">$</span>
-              <input type="number" id="cost_tn" min="0" max="1000000" step="5" value="0" class="cost-num-input">
-            </div>
-          </div>
-        </div>
-
-        <!-- TOTAL FINANCIAL OUTCOME -->
-        <div class="total-cost-display">
-          <div class="cost-stat-main">
-            <span class="cost-stat-caption">Total Expected Cost</span>
-            <div class="cost-huge-number" id="totalCostDisplay">$0</div>
-            <div class="cost-per-sample">Average: <span id="avgCostDisplay">$0.00</span> per processed sample</div>
-          </div>
-
-          <!-- COST BREAKDOWN VISUAL BAR -->
-          <div class="cost-breakdown-container">
-            <div class="cost-bar-labels">
-              <span>Cost Distribution</span>
-              <span id="costBreakdownPct">0% Missed Alerts | 0% False Alarms</span>
-            </div>
-            <div class="cost-progress-bar" id="costProgressBar">
-              <div class="bar-segment bar-fn" id="barSegmentFN" title="Cost of Missed Alerts (FN)"></div>
-              <div class="bar-segment bar-fp" id="barSegmentFP" title="Cost of False Alarms (FP)"></div>
-              <div class="bar-segment bar-tp" id="barSegmentTP" title="Cost of True Alerts (TP)"></div>
-            </div>
-            <div class="cost-legend-row">
-              <span class="legend-item"><span class="legend-dot dot-fn"></span> Missed Alerts: <strong id="costLegendFN">$0</strong></span>
-              <span class="legend-item"><span class="legend-dot dot-fp"></span> False Alarms: <strong id="costLegendFP">$0</strong></span>
-              <span class="legend-item"><span class="legend-dot dot-tp"></span> Valid Catches: <strong id="costLegendTP">$0</strong></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- BASELINE COMPARISON: THE "WHY MODELING MATTERS" LESSON -->
-        <div class="baseline-comparison-box">
-          <h3 class="baseline-title">🎓 The Business Case: Model vs Naive Strategies</h3>
-          <div class="baseline-grid">
-            <div class="baseline-item">
-              <span class="baseline-lbl">Naive Policy A: "Alert Everyone" (PP=n)</span>
-              <span class="baseline-val" id="costPolicyAllPos">$0</span>
-              <span class="baseline-sub">0 Missed Alerts, but max False Alarms</span>
-            </div>
-            <div class="baseline-item">
-              <span class="baseline-lbl">Naive Policy B: "Alert Nobody" (PN=n)</span>
-              <span class="baseline-val" id="costPolicyAllNeg">$0</span>
-              <span class="baseline-sub">0 False Alarms, but every alert missed</span>
-            </div>
-            <div class="baseline-item highlight-baseline">
-              <span class="baseline-lbl">Your Model's Net Cost Advantage</span>
-              <span class="baseline-val advantage-val" id="costAdvantageVal">$0</span>
-              <span class="baseline-sub" id="costAdvantageSub">Savings vs best naive policy</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+      <!-- MATRIX FOOTER INSIGHT -->
+      <div class="matrix-insight" id="matrixInsightBanner">
+        <span class="insight-badge">Summary</span>
+        <span id="matrixInsightText">Out of 1,000 samples, the model raised alerts for 200 items. 140 were valid alerts (TP) while 60 were false alarms (FP). 20 true incidents were missed (FN).</span>
+      </div>
+    </section>
 
     <!-- METRICS COMPREHENSIVE CARDS -->
     <section class="card metrics-card" id="all-metrics-view">
@@ -749,6 +624,137 @@
           <div class="metric-value" id="card-mcc">0.000</div>
           <div class="metric-formula"><code>(TP·TN - FP·FN)/√(...)</code></div>
           <p class="metric-desc">Balanced metric that returns -1 (anti-correlated) to +1 (perfect).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COST OF MISPREDICTION & WHAT-IF SCENARIOS (MOVED TO BOTTOM) -->
+    <section class="card cost-card" id="cost-analysis-view">
+      <div class="card-header-flex">
+        <div>
+          <span class="badge badge-warning">Decision & What-If Modeling</span>
+          <h2 class="card-heading">Cost of Misprediction Engine</h2>
+          <p class="card-description">Model the financial and operational trade-offs of False Alarms vs Missed Alerts. Assign custom unit costs or load real-world scenarios.</p>
+        </div>
+        <div class="preset-dropdown-wrap">
+          <label for="scenarioPresetSelect" class="sr-only">Industry Scenario Preset</label>
+          <select id="scenarioPresetSelect" class="preset-select">
+            <option value="" disabled selected>⚡ Load Real-World Scenario Preset...</option>
+            <option value="cyber">🛡️ Cybersecurity SOC (Alarm fatigue vs Breach)</option>
+            <option value="medical">🩺 Emergency Sepsis Screening (ICU bed vs Sepsis)</option>
+            <option value="quality">🏭 Factory Defect Inspection (Scrap vs Recall)</option>
+            <option value="fraud">💳 Credit Card Fraud Detection (Friction vs Loss)</option>
+            <option value="balanced">⚖️ Equal Unit Penalty ($100 each)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cost-engine-layout">
+        <!-- LEFT SUB-COLUMN: UNIT COST PARAMETERS -->
+        <div class="cost-inputs-column">
+          <h3 class="cost-column-title">Unit Cost Penalties</h3>
+          <div class="cost-inputs-grid">
+            <div class="cost-param-card fp-cost-card">
+              <div class="cost-header">
+                <span class="cost-label">Cost per False Alarm (<code class="math-code">C_FP</code>)</span>
+                <span class="cost-badge badge-fp">False Positive</span>
+              </div>
+              <p class="cost-desc">Investigation time, analyst fatigue, wasted lab test</p>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="cost_fp" min="0" max="1000000" step="5" value="100" class="cost-num-input">
+              </div>
+            </div>
+
+            <div class="cost-param-card fn-cost-card">
+              <div class="cost-header">
+                <span class="cost-label">Cost per Missed Alert (<code class="math-code">C_FN</code>)</span>
+                <span class="cost-badge badge-fn">False Negative</span>
+              </div>
+              <p class="cost-desc">Undetected data breach, untreated infection, customer loss</p>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="cost_fn" min="0" max="1000000" step="50" value="5000" class="cost-num-input">
+              </div>
+            </div>
+
+            <div class="cost-param-card tp-cost-card">
+              <div class="cost-header">
+                <span class="cost-label">Cost per True Catch (<code class="math-code">C_TP</code>)</span>
+                <span class="cost-badge badge-tp">True Positive</span>
+              </div>
+              <p class="cost-desc">Standard operational handling & mitigation cost</p>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="cost_tp" min="0" max="1000000" step="5" value="20" class="cost-num-input">
+              </div>
+            </div>
+
+            <div class="cost-param-card tn-cost-card">
+              <div class="cost-header">
+                <span class="cost-label">Cost per Quiet Normal (<code class="math-code">C_TN</code>)</span>
+                <span class="cost-badge badge-tn">True Negative</span>
+              </div>
+              <p class="cost-desc">Baseline quiet normal operation (typically $0)</p>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="cost_tn" min="0" max="1000000" step="5" value="0" class="cost-num-input">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SUB-COLUMN: TOTAL COST & OUTCOMES -->
+        <div class="cost-outcomes-column">
+          <h3 class="cost-column-title">Financial & Operational Outcome</h3>
+          <!-- TOTAL FINANCIAL OUTCOME -->
+          <div class="total-cost-display">
+            <div class="cost-stat-main">
+              <span class="cost-stat-caption">Total Expected Cost</span>
+              <div class="cost-huge-number" id="totalCostDisplay">$0</div>
+              <div class="cost-per-sample">Average: <span id="avgCostDisplay">$0.00</span> per processed sample</div>
+            </div>
+
+            <!-- COST BREAKDOWN VISUAL BAR -->
+            <div class="cost-breakdown-container">
+              <div class="cost-bar-labels">
+                <span>Cost Distribution</span>
+                <span id="costBreakdownPct">0% Missed Alerts | 0% False Alarms</span>
+              </div>
+              <div class="cost-progress-bar" id="costProgressBar">
+                <div class="bar-segment bar-fn" id="barSegmentFN" title="Cost of Missed Alerts (FN)"></div>
+                <div class="bar-segment bar-fp" id="barSegmentFP" title="Cost of False Alarms (FP)"></div>
+                <div class="bar-segment bar-tp" id="barSegmentTP" title="Cost of True Alerts (TP)"></div>
+              </div>
+              <div class="cost-legend-row">
+                <span class="legend-item"><span class="legend-dot dot-fn"></span> Missed Alerts: <strong id="costLegendFN">$0</strong></span>
+                <span class="legend-item"><span class="legend-dot dot-fp"></span> False Alarms: <strong id="costLegendFP">$0</strong></span>
+                <span class="legend-item"><span class="legend-dot dot-tp"></span> Valid Catches: <strong id="costLegendTP">$0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BASELINE COMPARISON -->
+          <div class="baseline-comparison-box">
+            <h4 class="baseline-title">🎓 The Business Case: Model vs Naive Strategies</h4>
+            <div class="baseline-grid">
+              <div class="baseline-item">
+                <span class="baseline-lbl">Naive Policy A: "Alert Everyone" (PP=n)</span>
+                <span class="baseline-val" id="costPolicyAllPos">$0</span>
+                <span class="baseline-sub">0 Missed Alerts, but max False Alarms</span>
+              </div>
+              <div class="baseline-item">
+                <span class="baseline-lbl">Naive Policy B: "Alert Nobody" (PN=n)</span>
+                <span class="baseline-val" id="costPolicyAllNeg">$0</span>
+                <span class="baseline-sub">0 False Alarms, but every alert missed</span>
+              </div>
+              <div class="baseline-item highlight-baseline">
+                <span class="baseline-lbl">Your Model's Net Advantage</span>
+                <span class="baseline-val advantage-val" id="costAdvantageVal">$0</span>
+                <span class="baseline-sub" id="costAdvantageSub">Savings vs best naive policy</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
